@@ -24,3 +24,4 @@ Remotes:
     hadley/testthat,
     klutometis/roxygen
 VignetteBuilder: knitr
+RoxygenNote: 6.1.1
