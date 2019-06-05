@@ -10,11 +10,8 @@ loaded_modules = new.env(parent = emptyenv())
 #' \code{is_module_loaded} tests whether a module is already lodaded
 #' @param module_path fully resolved module path
 #' @rdname loaded_modules
-is_module_loaded = function (module_path){
-    #:TODO should cache by code and invalidate all dependent if needed
-    return(FALSE)
-    #exists(module_path, envir = loaded_modules, inherits = FALSE)
-    }
+is_module_loaded = function (module_path)
+    exists(module_path, envir = loaded_modules, inherits = FALSE)
 
 #' \code{cache_module} caches a module namespace and marks the module as loaded.
 #' @param module_ns module namespace environment

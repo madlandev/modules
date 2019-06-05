@@ -71,7 +71,7 @@
 #' @seealso \code{\link{module_help}}
 #' @export
 #' @rdname import
-import_ = function (module, attach, attach_operators = TRUE, doc) {
+import_ = function (module, attach, attach_operators = TRUE, doc, interactive_mode = FALSE) {
     stopifnot(inherits(module, 'character'))
 
     if (missing(attach)) {
@@ -100,24 +100,27 @@ import_ = function (module, attach, attach_operators = TRUE, doc) {
         stop(attr(module_path, 'condition')$message)
 
     containing_modules = module_init_files(module, module_path)
+    
     mapply(do_import, names(containing_modules), containing_modules,
            rep(doc, length(containing_modules)))
 
     mod_ns = do_import(module, module_path, doc)
     module_parent = parent.frame()
     mod_env = exhibit_module_namespace(mod_ns, module, module_parent,
-                                       export_list)
+                                       export_list,
+                                       interactive_mode)
 
     attach_module(attach, attach_operators, module, mod_env, module_parent)
 
     attr(mod_env, 'call') = match.call()
-    lockEnvironment(mod_env, bindings = TRUE)
+    #lockEnvironment(mod_env, bindings = TRUE)
     invisible(mod_env)
 }
 
+
 #' @export
 #' @rdname import
-import = function (module, attach, attach_operators = TRUE, doc) {
+import = function (module, attach, attach_operators = TRUE, doc, interactive_mode = FALSE) {
     # Substitute exactly `import` with `import_` in call. This ensures that the
     # call works regardless of whether it was bare or qualified
     # (`modules::import`).
@@ -173,8 +176,9 @@ attach_module = function (all, operators, name, mod_env, parent) {
             warn.conflicts = warn)
         attr(mod_env, 'attached') = environmentName(attached_module)
     }
-    else
+    else {
         parent.env(parent) = attached_module
+    }
 }
 
 #' Save a module’s inherited attributes into a local environment
@@ -194,18 +198,11 @@ fix_module_attributes = function (envir) {
         module_attributes(envir) = new.env(parent = emptyenv())
 }
 
-#' Perform the actual import operation on an individual module
-#'
-#' @param module_name the name of the module, as specified by the user
-#' @param module_path the fully resolved path to the module file
-#' @param doc logical, whether the module documentation should be parsed
-do_import = function (module_name, module_path, doc) {
-    if (is_module_loaded(module_path))
-        return(get_loaded_module(module_path))
 
+prepare_namespace <- function(module_name, module_path, doc) {
     # Environment with helper functions which are only available when loading a
     # module via `import`, and are not otherwise exported by the package.
-
+    
     modules_exports = sapply(getNamespaceExports(getNamespace('modules')),
                              getExportedValue,
                              ns = getNamespace('modules'),
@@ -214,7 +211,7 @@ do_import = function (module_name, module_path, doc) {
                             list(export_submodule = export_submodule,
                                  export_submodule_ = export_submodule_)),
                           parent = .BaseNamespaceEnv)
-
+    
     # The namespace contains a module’s content. This schema is very much like
     # R package organisation.
     # A good resource for this is:
@@ -222,13 +219,38 @@ do_import = function (module_name, module_path, doc) {
     namespace = structure(new.env(parent = helper_env),
                           name = paste('namespace', module_name, sep = ':'),
                           class = c('namespace', 'environment'))
+    
+    namespace    
+}
 
+
+#' Perform the actual import operation on an individual module
+#'
+#' @param module_name the name of the module, as specified by the user
+#' @param module_path the fully resolved path to the module file
+#' @param doc logical, whether the module documentation should be parsed
+do_import = function (module_name, module_path, doc, custom_code = NULL) {
+    if (is_module_loaded(module_path)) {
+        namespace <- get_loaded_module(module_path)
+        if(is.null(custom_code)) {
+            return(namespace)
+        } else {
+            #uncache_module(namespace)
+        }
+    } else {
+        namespace <- prepare_namespace(module_name, module_path, doc)
+    }
+
+       
     module_attr(namespace, 'name') = environmentName(namespace)
     module_attr(namespace, 'path') = module_path
 
     # First cache the (still empty) namespace, then source code into it. This is
     # necessary to allow circular imports.
-    cache_module(namespace)
+    if(is.null(custom_code)) {
+        cache_module(namespace)
+    }
+
     # If loading fails due to an error inside the module (i.e. `parse` or `eval`
     # will fail), we unload the module again.
     on.exit(uncache_module(namespace))
@@ -236,7 +258,12 @@ do_import = function (module_name, module_path, doc) {
     # R, Windows and Unicode don’t play together. `source` does not work here.
     # See http://developer.r-project.org/Encodings_and_R.html and
     # http://stackoverflow.com/q/5031630/1968 for a discussion of this.
-    eval(parse(module_path, encoding = 'UTF-8'), envir = namespace)
+    if(is.null(custom_code)) {
+        eval(parse(module_path, encoding = 'UTF-8'), envir = namespace)
+    } else {
+       eval(parse(text=custom_code),
+             envir = namespace)
+    }
 
     make_S3_methods_known(namespace)
 
@@ -372,3 +399,5 @@ print.module = function (x, ...) {
     cat(sprintf('<%s>\n', module_attr(x, 'name')))
     invisible(x)
 }
+
+

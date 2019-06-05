@@ -9,12 +9,16 @@
 #' @param path the fully resolved path to the corresponding module or package
 #' @param doc the module documentation
 #' @return Returns the resulting environment.
-exhibit_namespace = function (objects, name, path, doc, parent) {
+exhibit_namespace = function (objects, name, path, doc, parent,
+                              interactive_mode = FALSE) {
     # Skip one parent environment because this module is hooked into the chain
     # between the calling environment and its ancestor, thus sitting in its
     # local object search path.
 
-    env = list2env(objects, parent = parent.env(parent))
+    env = if(interactive_mode)
+        objects
+    else
+        list2env(objects, parent = parent.env(parent))
     module_attr(env, 'path') = path
     module_attr(env, 'name') = name
     class = c(if (grepl('^package:', name)) 'package', 'module', 'environment')
@@ -23,22 +27,30 @@ exhibit_namespace = function (objects, name, path, doc, parent) {
 
 #' \code{exhibit_module_namespace} exports a namespace for a module.
 #' @rdname exhibit_namespace
-exhibit_module_namespace = function (namespace, name, parent, export_list) {
-    if (is.null(export_list))
-        export_list = ls(namespace)
+exhibit_module_namespace = function (namespace, name, parent, export_list,
+                                     interactive_mode = FALSE) {
+    
+    objects <- if(interactive_mode)
+        namespace
     else {
-        # Verify correctness.
-        exist = vapply(export_list, exists, logical(1), envir = namespace)
-        if (! all(exist))
-            stop(sprintf('Non-existent function(s) (%s) specified for import',
-                         paste(sQuote(export_list[! exist]), collapse = ', ')))
+        if (is.null(export_list))
+            export_list = ls(namespace)
+        else {
+            # Verify correctness.
+            exist = vapply(export_list, exists, logical(1), envir = namespace)
+            if (! all(exist))
+                stop(sprintf('Non-existent function(s) (%s) specified for import',
+                             paste(sQuote(export_list[! exist]), collapse = ', ')))
+        }
+        objects <- mget(export_list, envir = namespace)
     }
 
-    exhibit_namespace(mget(export_list, envir = namespace),
+    exhibit_namespace(objects,
                       paste('module', name, sep = ':'),
                       module_path(namespace),
                       attr(namespace, 'doc'),
-                      parent)
+                      parent,
+                      interactive_mode)
 }
 
 #' \code{exhibit_package_namespace} exports a namespace for a package.

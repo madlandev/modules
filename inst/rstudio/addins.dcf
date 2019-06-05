@@ -1,0 +1,4 @@
+Name: Eval in module
+Description: Evals selected code in the context of a module
+Binding: evalInModule
+Interactive: false
