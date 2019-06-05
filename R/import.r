@@ -261,8 +261,8 @@ do_import = function (module_name, module_path, doc, custom_code = NULL) {
     if(is.null(custom_code)) {
         eval(parse(module_path, encoding = 'UTF-8'), envir = namespace)
     } else {
-       eval(parse(text=custom_code),
-             envir = namespace)
+       # Here we evaluate the custom code in the namespace!
+       eval(parse(text=custom_code), envir = namespace)
     }
 
     make_S3_methods_known(namespace)
