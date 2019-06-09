@@ -1,1 +1,2 @@
-model_a = import("R/toy_model_a")
+in_module("toy_module_b")
+model_a = import("toy_module_a")
