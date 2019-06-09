@@ -16,7 +16,31 @@ which_module <- function() {
 
 evalInModule <- function() {
     m <- which_module()
-    code <- rstudioapi::primary_selection(rstudioapi::getSourceEditorContext())$text
+    s <- rstudioapi::primary_selection(rstudioapi::getSourceEditorContext());
+    code <- s$text
+    #TODO: parse with source files and use line information to jump to next
+    #code start
+    if (code == ""){
+        current_row <- s$range[[1]][[1]]
+        lines <- rstudioapi::getSourceEditorContext()$contents
+        code_text = lines[[current_row]]
+        for (i in 1:20){
+            code <- tryCatch(parse(text = code_text),
+                            error = function(e){e})  
+            if (is(code, "error")){
+                if (stringr::str_detect(code$message, "unexpected end of input") ){
+                    code_text = paste(lines[current_row:(current_row+i)], collapse = "\n")
+                } else {
+                    break
+                }
+            } else {
+                break
+            }
+        }
+        code = code_text
+        rstudioapi::setCursorPosition(position = rstudioapi::document_position(current_row+i,1))
+    }
+    
     if(is.null(m)) {
         rstudioapi::sendToConsole(code)
     } else {
