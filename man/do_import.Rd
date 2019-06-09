@@ -4,7 +4,7 @@
 \alias{do_import}
 \title{Perform the actual import operation on an individual module}
 \usage{
-do_import(module_name, module_path, doc, custom_code = NULL)
+do_import(module_name, module_path, doc)
 }
 \arguments{
 \item{module_name}{the name of the module, as specified by the user}

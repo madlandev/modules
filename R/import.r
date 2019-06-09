@@ -248,7 +248,7 @@ with_module <- function(module_name, expr){
     }
     # Here we evaluate the custom code in the namespace!
     res <- eval(substitute(expr), envir = namespace)
-       make_S3_methods_known(namespace)
+    make_S3_methods_known(namespace)
     on.exit()
     return(res)
 }
@@ -261,10 +261,14 @@ with_module <- function(module_name, expr){
 do_import = function (module_name, module_path, doc) {
     this_module_loaded <- is_module_loaded(module_path)
     namespace <-   get_namespace(module_name, module_path)  
+
     # If loading fails due to an error inside the module (i.e. `parse` or `eval`
     # will fail), we unload the module again.
+    browser()
     if (!this_module_loaded){
         on.exit(uncache_module(namespace))
+    } else{ 
+       return(namespace)
     }
     
     # R, Windows and Unicode don’t play together. `source` does not work here.

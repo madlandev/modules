@@ -2,7 +2,7 @@ in_module("toy_module_a")
 
 a <- 15
 
-b <- 7
+b <- a+3
 
 c <- 12
 d <- 17
