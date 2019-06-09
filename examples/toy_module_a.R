@@ -1,10 +1,11 @@
 in_module("toy_module_a")
 
-a <- 15
+a =3 
 
-b <- a+3
+b <- a+9
 
-c <- 12
-d <- 17
+d <- 17 +
+  zz ; a <- 3
 e <- 19
+
 

@@ -237,7 +237,13 @@ get_namespace <- function(module_name, module_path){
 
 }
 
-with_module <- function(module_name, expr){
+with_module <- function(module_name, ...){
+    
+    # to supprt a = 3, etc
+    expr <- substitute(alist(...)) %>%
+        deparse() %>% 
+        stringr::str_sub(7,-2) %>%
+        {parse(text = .)}
     m <- in_module(module_name)
     this_module_loaded <- is_module_loaded(m$path)
     namespace <- get_namespace(m$name, m$path)  
@@ -247,7 +253,7 @@ with_module <- function(module_name, expr){
         on.exit(uncache_module(namespace))
     }
     # Here we evaluate the custom code in the namespace!
-    res <- eval(substitute(expr), envir = namespace)
+    res <- eval(expr, envir = namespace)
     make_S3_methods_known(namespace)
     on.exit()
     return(res)
