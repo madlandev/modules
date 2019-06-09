@@ -264,7 +264,6 @@ do_import = function (module_name, module_path, doc) {
 
     # If loading fails due to an error inside the module (i.e. `parse` or `eval`
     # will fail), we unload the module again.
-    browser()
     if (!this_module_loaded){
         on.exit(uncache_module(namespace))
     } else{ 
