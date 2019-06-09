@@ -16,10 +16,10 @@ which_module <- function() {
 
 evalInModule <- function() {
     m <- which_module()
+    code <- rstudioapi::primary_selection(rstudioapi::getActiveDocumentContext())$text
     if(is.null(m)) {
         rstudioapi::sendToConsole(code)
     } else {
-        code <- rstudioapi::primary_selection(rstudioapi::getActiveDocumentContext())$text
         rstudioapi::sendToConsole(paste0("with_module(\"",m$name,"\", ",code,")"))
     }
 }
