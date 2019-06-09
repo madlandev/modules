@@ -1,13 +1,2 @@
-use import.path option to handle paths
-
-we do not need attach - we have use
-so cancel the interactive_mode param, make it the only behaviour
-
-send code with "within" ...
-
 recognize code section (like Ctrl+Enter does) -- so we do not have to mark code
 
-add_init_module("module1")  (no "R/module1") -- that adds it to cache
-shout error if things are not in cache yet
-
-better solution to "jump to console"" problem: try to hack eval
