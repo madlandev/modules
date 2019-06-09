@@ -6,9 +6,11 @@
 \alias{exhibit_package_namespace}
 \title{Exhibit objects from an internal module namespace as an environment}
 \usage{
-exhibit_namespace(objects, name, path, doc, parent)
+exhibit_namespace(objects, name, path, doc, parent,
+  interactive_mode = FALSE)
 
-exhibit_module_namespace(namespace, name, parent, export_list)
+exhibit_module_namespace(namespace, name, parent, export_list,
+  interactive_mode = FALSE)
 
 exhibit_package_namespace(namespace, name, parent, export_list)
 }

@@ -1,0 +1,1 @@
+options('import.path' = "examples")

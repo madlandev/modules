@@ -71,7 +71,7 @@
 #' @seealso \code{\link{module_help}}
 #' @export
 #' @rdname import
-import_ = function (module, attach, attach_operators = TRUE, doc, interactive_mode = FALSE) {
+import_ = function (module, attach, attach_operators = TRUE, doc, interactive_mode = TRUE) {
     stopifnot(inherits(module, 'character'))
 
     if (missing(attach)) {
@@ -224,55 +224,61 @@ prepare_namespace <- function(module_name, module_path, doc) {
 }
 
 
+get_namespace <- function(module_name, module_path){
+    this_module_loaded <- is_module_loaded(module_path)
+    if (this_module_loaded) {
+        namespace <- get_loaded_module(module_path)
+    } else {
+        namespace <- prepare_namespace(module_name, module_path, doc)
+        module_attr(namespace, 'name') = environmentName(namespace)
+        module_attr(namespace, 'path') = module_path
+        cache_module(namespace)
+    }
+
+}
+
+with_module <- function(module_name, expr){
+    m <- in_module(module_name)
+    this_module_loaded <- is_module_loaded(m$path)
+    namespace <- get_namespace(m$name, m$path)  
+    # If loading fails due to an error inside the module (i.e. `parse` or `eval`
+    # will fail), we unload the module again.
+    if (!this_module_loaded){
+        on.exit(uncache_module(namespace))
+    }
+    # Here we evaluate the custom code in the namespace!
+    res <- eval(substitute(expr), envir = namespace)
+       make_S3_methods_known(namespace)
+    on.exit()
+    return(res)
+}
+
 #' Perform the actual import operation on an individual module
 #'
 #' @param module_name the name of the module, as specified by the user
 #' @param module_path the fully resolved path to the module file
 #' @param doc logical, whether the module documentation should be parsed
-do_import = function (module_name, module_path, doc, custom_code = NULL) {
-    if (is_module_loaded(module_path)) {
-        namespace <- get_loaded_module(module_path)
-        if(is.null(custom_code)) {
-            return(namespace)
-        } else {
-            #uncache_module(namespace)
-        }
-    } else {
-        namespace <- prepare_namespace(module_name, module_path, doc)
-    }
-
-       
-    module_attr(namespace, 'name') = environmentName(namespace)
-    module_attr(namespace, 'path') = module_path
-
-    # First cache the (still empty) namespace, then source code into it. This is
-    # necessary to allow circular imports.
-    if(is.null(custom_code)) {
-        cache_module(namespace)
-    }
-
+do_import = function (module_name, module_path, doc) {
+    this_module_loaded <- is_module_loaded(module_path)
+    namespace <-   get_namespace(module_name, module_path)  
     # If loading fails due to an error inside the module (i.e. `parse` or `eval`
     # will fail), we unload the module again.
-    on.exit(uncache_module(namespace))
-
+    if (!this_module_loaded){
+        on.exit(uncache_module(namespace))
+    }
+    
     # R, Windows and Unicode don’t play together. `source` does not work here.
     # See http://developer.r-project.org/Encodings_and_R.html and
     # http://stackoverflow.com/q/5031630/1968 for a discussion of this.
-    if(is.null(custom_code)) {
-        eval(parse(module_path, encoding = 'UTF-8'), envir = namespace)
-    } else {
-       # Here we evaluate the custom code in the namespace!
-       eval(parse(text=custom_code), envir = namespace)
-    }
-
+    eval(parse(module_path, encoding = 'UTF-8'), envir = namespace)
     make_S3_methods_known(namespace)
-
+    
     if (doc)
         attr(namespace, 'doc') = parse_documentation(namespace)
-
+    
     # No error occured — prevent unloading.
     on.exit()
-    namespace
+    return(namespace)
 }
 
 #' Copy a module’s operators into a separate environment

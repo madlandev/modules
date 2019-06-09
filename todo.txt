@@ -3,8 +3,7 @@ use import.path option to handle paths
 we do not need attach - we have use
 so cancel the interactive_mode param, make it the only behaviour
 
-fix "jump to console" problem
-easier solution: send code with "within" ...
+send code with "within" ...
 
 recognize code section (like Ctrl+Enter does) -- so we do not have to mark code
 
