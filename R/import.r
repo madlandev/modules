@@ -237,6 +237,7 @@ get_namespace <- function(module_name, module_path){
 
 }
 
+#' @export
 with_module <- function(module_name, ...){
     
     # to supprt a = 3, etc

@@ -1,3 +1,4 @@
+#' @export
 in_module <- function(module_name){
     list(name = module_name,
          path = find_module(module_name))
