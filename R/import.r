@@ -243,6 +243,7 @@ with_module <- function(module_name, ...){
     # to supprt a = 3, etc
     expr <- substitute(alist(...)) %>%
         deparse() %>% 
+        paste0(collapse = " ") %>%
         stringr::str_sub(7,-2) %>%
         {parse(text = .)}
     m <- in_module(module_name)
