@@ -25,7 +25,7 @@ evalInModule <- function() {
         current_row <- s$range[[1]][[1]]
         lines <- rstudioapi::getSourceEditorContext()$contents
         code_text = lines[[current_row]]
-        for (i in 1:20){
+        for (i in 1:150){
             code <- tryCatch(parse(text = code_text),
                             error = function(e){e})  
             if (is(code, "error")){
