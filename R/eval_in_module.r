@@ -49,7 +49,7 @@ evalInModule <- function() {
         for (i in seq_along(exprs)){
             rstudioapi::sendToConsole(paste0("with_module(\"",m$name,"\", ",
                                              paste0(deparse(exprs[[i]]),
-                                                    collapse = "\n")
+                                                    collapse = " ")
                                              ,")"), 
                                       focus = FALSE)
         }
