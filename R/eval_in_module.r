@@ -47,7 +47,10 @@ evalInModule <- function() {
     } else {
         exprs <- parse(text = code)
         for (i in seq_along(exprs)){
-            rstudioapi::sendToConsole(paste0("with_module(\"",m$name,"\", ",deparse(exprs[[i]]),")"), 
+            rstudioapi::sendToConsole(paste0("with_module(\"",m$name,"\", ",
+                                             paste0(deparse(exprs[[i]]),
+                                                    collapse = "\n")
+                                             ,")"), 
                                       focus = FALSE)
         }
     }
