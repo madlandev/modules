@@ -258,7 +258,12 @@ with_module <- function(module_name, ...){
     res <- eval(expr, envir = namespace)
     make_S3_methods_known(namespace)
     on.exit()
-    return(res)
+    if (length(expr[[1]]) > 1  && 
+        (expr[[1]][[1]] == '<-' || expr[[1]][[1]] == '=')){
+        return(invisible(res))
+    } else {
+        return(res)
+    }
 }
 
 #' Perform the actual import operation on an individual module
