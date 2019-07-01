@@ -19,17 +19,17 @@ evalInModule <- function() {
     m <- which_module()
     s <- rstudioapi::primary_selection(rstudioapi::getSourceEditorContext());
     code <- s$text
+    lines <- rstudioapi::getSourceEditorContext()$contents
     #TODO: parse with source files and use line information to jump to next
     #code start
     if (code == ""){
         current_row <- s$range[[1]][[1]]
-        lines <- rstudioapi::getSourceEditorContext()$contents
         code_text = lines[[current_row]]
         for (i in 1:150){
             code <- tryCatch(parse(text = code_text),
                             error = function(e){e})  
             if (is(code, "error")){
-                if (stringr::str_detect(code$message, "unexpected end of input") ){
+                if (stringr::str_detect(code$message, "unexpected") ){
                     code_text = paste(lines[current_row:(current_row+i)], collapse = "\n")
                 } else {
                     break
